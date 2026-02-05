@@ -157,6 +157,29 @@ Automatically run commands when creating new worktrees. Create `jean.json` in yo
 
 The setup script runs automatically for every new worktree (created with `n` or `a` keys). Script failures are shown as warnings and won't block worktree creation.
 
+### Workspace Directory
+
+By default, jean creates worktrees in `.workspaces/` directory at the repository root. You can customize this location using the `JEAN_WORKSPACE_PATH` environment variable:
+
+```bash
+# Use a custom relative path (relative to repo root)
+export JEAN_WORKSPACE_PATH=my-workspaces
+jean
+
+# Use an absolute path
+export JEAN_WORKSPACE_PATH=/tmp/jean-workspaces
+jean
+
+# Use a path outside the repository
+export JEAN_WORKSPACE_PATH=../shared-workspaces
+jean
+```
+
+This allows you to:
+- Keep worktrees on a faster drive
+- Share worktrees across multiple repositories
+- Keep worktrees separate from your main repository clone
+
 ## Workflows
 
 ### Create Draft PR (Single Command)

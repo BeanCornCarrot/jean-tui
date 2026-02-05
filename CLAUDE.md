@@ -200,7 +200,9 @@ Configuration management:
 - Invalid characters replaced with hyphens
 - Both session types can coexist for the same worktree
 
-**Worktree Organization**: All worktrees are created in `.workspaces/` directory at repository root:
+**Worktree Organization**: All worktrees are created in a workspace directory (configurable via `JEAN_WORKSPACE_PATH`):
+- Default location: `.workspaces/` directory at repository root
+- Can be customized via environment variable `JEAN_WORKSPACE_PATH` (supports both relative and absolute paths)
 - Random names generated from adjectives + nouns + numbers (e.g., `happy-panda-42`)
 - Keeps workspace organized and prevents directory conflicts
 
@@ -248,6 +250,15 @@ Configuration management:
 2. Fall back to current branch
 3. Fall back to default branch (main/master)
 4. Fall back to empty string (user must set manually)
+
+**Environment Variables**:
+- **`JEAN_WORKSPACE_PATH`**: Customizes the directory where worktrees are created
+  - Supports both relative paths (relative to repository root) and absolute paths
+  - Default: `.workspaces` (relative to repository root)
+  - Examples:
+    - `JEAN_WORKSPACE_PATH=my-workspaces` - creates worktrees in `<repo-root>/my-workspaces/`
+    - `JEAN_WORKSPACE_PATH=/tmp/jean-workspaces` - creates worktrees in `/tmp/jean-workspaces/`
+    - `JEAN_WORKSPACE_PATH=../shared-workspaces` - creates worktrees in parent directory
 
 **Editor Integration**:
 - Supports 7 popular editors: code, cursor, nvim, vim, subl, atom, zed
@@ -545,7 +556,7 @@ Key external dependencies:
 - Automatically fetches latest changes first, then merges base branch
 - Graceful merge conflict handling with abort option
 - Shows "Merge conflict! Run 'git merge --abort' to abort." message on conflicts
-- Only works on workspace worktrees (in `.workspaces/` directory)
+- Only works on workspace worktrees (not the main repository worktree)
 - **Status**: Implemented but NOT tested - will be tested in follow-up session
 
 ### Implementation Details (New Features)
