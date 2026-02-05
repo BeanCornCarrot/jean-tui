@@ -1527,8 +1527,8 @@ func (m Model) handleMainInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "B":
 		// Rename current branch (Shift+B)
 		if wt := m.selectedWorktree(); wt != nil {
-			// Check if this is a workspace worktree (in .workspaces directory)
-			if !strings.Contains(wt.Path, ".workspaces") {
+			// Check if this is a workspace worktree (not main repository)
+			if !m.gitManager.IsWorkspaceWorktree(wt.Path) {
 				return m, m.showWarningNotification("Cannot rename main branch. Only workspace branches can be renamed.")
 			}
 
@@ -1635,7 +1635,7 @@ func (m Model) handleMainInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			}
 
 			// Don't allow pull on main worktree
-			if !strings.Contains(wt.Path, ".workspaces") {
+			if !m.gitManager.IsWorkspaceWorktree(wt.Path) {
 				return m, m.showWarningNotification("Cannot pull on main worktree. Use 'git pull' manually.")
 			}
 
@@ -1749,7 +1749,7 @@ func (m Model) handleMainInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			}
 
 			// Safety check: only allow merge from workspace worktrees (not main repo)
-			if !strings.Contains(wt.Path, ".workspaces") {
+			if !m.gitManager.IsWorkspaceWorktree(wt.Path) {
 				return m, m.showWarningNotification("Can only merge workspace worktrees. Use 'git merge' manually in main repo.")
 			}
 

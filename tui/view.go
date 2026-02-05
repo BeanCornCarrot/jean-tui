@@ -181,7 +181,7 @@ func (m Model) renderDetails() string {
 				b.WriteString(strings.Join(statusParts, ", "))
 
 				// Add pull hint directly on the same line if behind
-				if wt.BehindCount > 0 && !wt.IsCurrent && strings.Contains(wt.Path, ".workspaces") {
+				if wt.BehindCount > 0 && !wt.IsCurrent && m.gitManager.IsWorkspaceWorktree(wt.Path) {
 					b.WriteString(normalItemStyle.Copy().Foreground(mutedColor).Render(" (press 'u' to pull)"))
 				}
 			} else {
@@ -473,7 +473,25 @@ func (m Model) renderCreateModal() string {
 	}
 
 	// Show info about auto-generated workspace location
-	b.WriteString(helpStyle.Render("Workspace location: .workspaces/<random-name>"))
+	workspaceDir, err := m.gitManager.GetWorkspacesDir()
+	if err == nil {
+		// Get relative path from repo root for cleaner display
+		repoRoot, rootErr := m.gitManager.GetRepoRoot()
+		if rootErr == nil {
+			relPath, relErr := filepath.Rel(repoRoot, workspaceDir)
+			// Only show relative path if it's within the repo (doesn't start with "..")
+			// For paths outside the repo, show the absolute path for clarity
+			if relErr == nil && !strings.HasPrefix(relPath, "..") {
+				b.WriteString(helpStyle.Render(fmt.Sprintf("Workspace location: %s/<random-name>", relPath)))
+			} else {
+				b.WriteString(helpStyle.Render(fmt.Sprintf("Workspace location: %s/<random-name>", workspaceDir)))
+			}
+		} else {
+			b.WriteString(helpStyle.Render(fmt.Sprintf("Workspace location: %s/<random-name>", workspaceDir)))
+		}
+	} else {
+		b.WriteString(helpStyle.Render("Workspace location: .workspaces/<random-name>"))
+	}
 	b.WriteString("\n\n")
 
 	// Buttons (now only 2 buttons: Create and Cancel)
@@ -950,7 +968,7 @@ func (m Model) renderRenameModal() string {
 
 	// Show info about what will be renamed
 	if wt := m.selectedWorktree(); wt != nil {
-		if strings.Contains(wt.Path, ".workspaces") {
+		if m.gitManager.IsWorkspaceWorktree(wt.Path) {
 			b.WriteString(helpStyle.Render("ℹ️  This will rename the git branch only"))
 			b.WriteString("\n")
 			b.WriteString(helpStyle.Render("   Directory path stays the same to preserve active sessions"))
