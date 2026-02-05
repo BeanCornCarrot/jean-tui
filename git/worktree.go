@@ -609,8 +609,13 @@ func (m *Manager) IsWorkspaceWorktree(worktreePath string) bool {
 	cleanWorktreePath := filepath.Clean(worktreePath)
 	cleanWorkspaceDir := filepath.Clean(workspaceDir)
 
-	// Check if worktree path starts with workspace directory
-	return strings.HasPrefix(cleanWorktreePath, cleanWorkspaceDir)
+	// Check if worktree path is within workspace directory
+	// Need to ensure we match the full directory component, not just a prefix
+	// e.g., ".workspaces-other" should not match ".workspaces"
+	if cleanWorktreePath == cleanWorkspaceDir {
+		return true
+	}
+	return strings.HasPrefix(cleanWorktreePath, cleanWorkspaceDir+string(filepath.Separator))
 }
 
 // GetDefaultPath returns a default path for a new worktree in the workspace directory

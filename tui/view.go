@@ -475,10 +475,12 @@ func (m Model) renderCreateModal() string {
 	// Show info about auto-generated workspace location
 	workspaceDir, err := m.gitManager.GetWorkspacesDir()
 	if err == nil {
-		// Get relative path from repo root
+		// Get relative path from repo root for cleaner display
 		repoRoot, rootErr := m.gitManager.GetRepoRoot()
 		if rootErr == nil {
 			relPath, relErr := filepath.Rel(repoRoot, workspaceDir)
+			// Only show relative path if it's within the repo (doesn't start with "..")
+			// For paths outside the repo, show the absolute path for clarity
 			if relErr == nil && !strings.HasPrefix(relPath, "..") {
 				b.WriteString(helpStyle.Render(fmt.Sprintf("Workspace location: %s/<random-name>", relPath)))
 			} else {
