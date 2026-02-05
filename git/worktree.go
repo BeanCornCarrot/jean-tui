@@ -571,31 +571,66 @@ func (m *Manager) GetRepoRoot() (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-// GetDefaultPath returns a default path for a new worktree in .workspaces directory
-func (m *Manager) GetDefaultPath(branch string) (string, error) {
+// resolveWorkspaceDir resolves the workspace directory path from environment variable or default.
+// Supports both relative paths (relative to repo root) and absolute paths.
+// Environment variable: JEAN_WORKSPACE_PATH
+// Default: .workspaces (relative to repo root)
+func (m *Manager) resolveWorkspaceDir() (string, error) {
 	root, err := m.GetRepoRoot()
 	if err != nil {
 		return "", err
 	}
 
-	// Use .workspaces directory inside repo root
-	workspacesDir := filepath.Join(root, ".workspaces")
+	// Check for environment variable
+	envPath := os.Getenv("JEAN_WORKSPACE_PATH")
+	if envPath == "" {
+		// Default to .workspaces directory inside repo root
+		return filepath.Join(root, ".workspaces"), nil
+	}
+
+	// If path is absolute, use it as-is
+	if filepath.IsAbs(envPath) {
+		return filepath.Clean(envPath), nil
+	}
+
+	// If path is relative, resolve it relative to repo root
+	return filepath.Join(root, envPath), nil
+}
+
+// IsWorkspaceWorktree checks if a given worktree path is in the workspace directory
+// (not the main repository worktree)
+func (m *Manager) IsWorkspaceWorktree(worktreePath string) bool {
+	workspaceDir, err := m.resolveWorkspaceDir()
+	if err != nil {
+		return false
+	}
+
+	// Clean paths for comparison
+	cleanWorktreePath := filepath.Clean(worktreePath)
+	cleanWorkspaceDir := filepath.Clean(workspaceDir)
+
+	// Check if worktree path starts with workspace directory
+	return strings.HasPrefix(cleanWorktreePath, cleanWorkspaceDir)
+}
+
+// GetDefaultPath returns a default path for a new worktree in the workspace directory
+func (m *Manager) GetDefaultPath(branch string) (string, error) {
+	workspacesDir, err := m.resolveWorkspaceDir()
+	if err != nil {
+		return "", err
+	}
 
 	// Sanitize branch name to create safe directory name
 	sanitized := sanitizeBranchForPath(branch)
 	return filepath.Join(workspacesDir, sanitized), nil
 }
 
-// GetWorkspacesDir returns the .workspaces directory path
+// GetWorkspacesDir returns the workspace directory path
 func (m *Manager) GetWorkspacesDir() (string, error) {
-	root, err := m.GetRepoRoot()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(root, ".workspaces"), nil
+	return m.resolveWorkspaceDir()
 }
 
-// EnsureWorkspacesDir creates the .workspaces directory if it doesn't exist
+// EnsureWorkspacesDir creates the workspace directory if it doesn't exist
 func (m *Manager) EnsureWorkspacesDir() error {
 	dir, err := m.GetWorkspacesDir()
 	if err != nil {
@@ -603,7 +638,7 @@ func (m *Manager) EnsureWorkspacesDir() error {
 	}
 
 	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("failed to create .workspaces directory: %w", err)
+		return fmt.Errorf("failed to create workspace directory: %w", err)
 	}
 
 	return nil

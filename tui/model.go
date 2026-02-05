@@ -792,7 +792,7 @@ func (m Model) loadPRDetailsForBranch(worktreePath, branch string) tea.Cmd {
 
 func (m Model) createWorktree(path, branch string, newBranch bool) tea.Cmd {
 	return func() tea.Msg {
-		// Ensure .workspaces directory exists
+		// Ensure workspace directory exists
 		if err := m.gitManager.EnsureWorkspacesDir(); err != nil {
 			return worktreeCreatedMsg{err: err, path: path, branch: branch}
 		}
@@ -810,7 +810,7 @@ func (m Model) createWorktree(path, branch string, newBranch bool) tea.Cmd {
 
 func (m Model) createWorktreeWithSession(path, sessionName string, newBranch bool) tea.Cmd {
 	return func() tea.Msg {
-		// Ensure .workspaces directory exists
+		// Ensure workspace directory exists
 		if err := m.gitManager.EnsureWorkspacesDir(); err != nil {
 			return worktreeCreatedWithSessionMsg{err: err, path: path, branch: sessionName, sessionName: sessionName}
 		}
@@ -853,13 +853,13 @@ func (m Model) createWorktreeFromPR(branch string) tea.Cmd {
 	return func() tea.Msg {
 		m.debugLog(fmt.Sprintf("createWorktreeFromPR() called with branch: %s", branch))
 
-		// Ensure .workspaces directory exists
-		m.debugLog("createWorktreeFromPR: ensuring .workspaces directory exists in repo: " + m.repoPath)
+		// Ensure workspace directory exists
+		m.debugLog("createWorktreeFromPR: ensuring workspace directory exists in repo: " + m.repoPath)
 		if err := m.gitManager.EnsureWorkspacesDir(); err != nil {
 			m.debugLog("createWorktreeFromPR: EnsureWorkspacesDir failed - " + err.Error())
 			return worktreeCreatedMsg{err: err, path: "", branch: branch}
 		}
-		m.debugLog("createWorktreeFromPR: .workspaces directory ensured successfully")
+		m.debugLog("createWorktreeFromPR: workspace directory ensured successfully")
 
 		// Generate random path for the worktree
 		m.debugLog("createWorktreeFromPR: generating random path for branch: " + branch)
